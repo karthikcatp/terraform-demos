@@ -1,8 +1,3 @@
-# Reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs#argument-reference
-provider "aws" {
-  region = var.region
-}
-
 # Reference: https://www.terraform.io/language/data-sources
 data "aws_vpc" "default-vpc" {
   default = true
@@ -15,19 +10,24 @@ data "aws_subnets" "default-subnets" {
   }
 }
 
+data "terraform_remote_state" "db" {
+  backend = "s3"
+
+  config = {
+    bucket = "rtc2022q3-terraform-state-1"
+    key = "stage/data-stores/mysql/terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
+
 # API Reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_configuration
 resource "aws_launch_configuration" "webserver-lc" {
   name = "webserver-lc"
   image_id      = var.ami
   instance_type = var.instance_type
   security_groups = [aws_security_group.webserver-lc-sg.id]
-  user_data = <<-EOF
-                #!/bin/bash
-                sudo yum install httpd php -y
-                sudo systemctl enable httpd --now
-                echo 'Welcome to Rathinam Trainers!!<BR> ' > /var/www/html/index.php
-                echo 'HostName: <?php $name=gethostname(); echo "$name"; ?> <BR> ' >> /var/www/html/index.php
-              EOF
+  associate_public_ip_address = true
+  user_data = templatefile("${path.module}/user-data.sh", {})
 
   lifecycle {
     create_before_destroy = true
@@ -71,8 +71,8 @@ resource "aws_autoscaling_group" "webserver-asg" {
   target_group_arns = [aws_lb_target_group.webserver-lb-tg.id]
   health_check_type = "ELB"
 
-  min_size = 2
-  max_size = 10
+  min_size = var.min_server_count
+  max_size = var.max_server_count
 
   tag {
     key                 = "Name"
@@ -156,11 +156,5 @@ resource "aws_lb_target_group" "webserver-lb-tg" {
     unhealthy_threshold = 2
     healthy_threshold = 2
   }
-}
-
-
-output "alb_dns_name" {
-  value = aws_lb.weserver-lb.dns_name
-  description = "The domain name of the webserver LB"
 }
 
