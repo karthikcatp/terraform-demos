@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "mysql_cluser" {
-  source = "../../modules/data-stores/mysql"
+  source = "github.com/rathinamtrainers/terraform-demos/tree/master/2022-06-19-010-modules/modules/data-stores/mysql?ref=1.0"
 
   db_name             = "lmsprod"
   db_password         = "rajan123"
