@@ -10,6 +10,6 @@ module "mysql_cluser" {
   db_username         = "rajan"
   identifier_prefix   = "lmsprod"
   publicly_accessible = false
-  skip_final_snapshot = false
+  skip_final_snapshot = true
 }
 
