@@ -3,9 +3,9 @@ provider "aws" {
 }
 
 module "webserver_cluser" {
-  source = "git::https://github.com/rathinamtrainers/terraform-demos//2022-06-05-020-modules/modules/services/webserver-cluster?ref=1.0"
+  source = "../../modules/services/webserver-cluster"
 
-
+  instance_type = "s2.xlarge"
   region = "ap-south-1"
   ami = "ami-079b5e5b3971bd10d"
   tags = {
@@ -15,9 +15,10 @@ module "webserver_cluser" {
   ingress_source_cidr = ["182.75.184.32/29", "0.0.0.0/0"]
   min_server_count = 1
   max_server_count = 2
-  #cluster_name = "lms-prod"
-  #db_remote_state_bucket = "rtc2022q3-terraform-state-1"
-  #db_remote_state_key = "prod/data-stores/mysql/terraform.tfstate"
+  cluster_name = "lms-prod"
+  db_remote_state_bucket = "rtc2022q3-terraform-state-1"
+  db_remote_state_key = "prod/data-stores/mysql/terraform.tfstate"
+  enable_autoscaling = true
 }
 
 output "lb-dns" {

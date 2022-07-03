@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "webserver_cluser" {
-  source = "git::https://github.com/rathinamtrainers/terraform-demos//2022-06-19-010-modules/modules/services/webserver-cluster?ref=2.0"
+  source = "../../../modules/services/webserver-cluster"
 
   region = "ap-south-1"
   ami = "ami-079b5e5b3971bd10d"
@@ -17,6 +17,11 @@ module "webserver_cluser" {
   cluster_name = "lms-stg"
   db_remote_state_bucket = "rtc2022q3-terraform-state-1"
   db_remote_state_key = "stage/data-stores/mysql/terraform.tfstate"
+
+  custom_tags = {
+    Owner = "Rajan"
+    Project = "Training"
+  }
 }
 
 # Add port 8080/tcp to SG.
