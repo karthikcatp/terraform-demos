@@ -5,6 +5,7 @@ provider "aws" {
 module "webserver_cluser" {
   source = "../../modules/services/webserver-cluster"
 
+  server_text = "Welcome to Rathinam Consultants"
   region = "ap-south-1"
   ami = "ami-079b5e5b3971bd10d"
   tags = {

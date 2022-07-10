@@ -42,6 +42,7 @@ resource "aws_launch_configuration" "webserver-lc" {
   user_data = templatefile("${path.module}/user-data.sh", {
     db_address = data.terraform_remote_state.db.outputs.address
     db_port = data.terraform_remote_state.db.outputs.port
+    server_text = var.server_text
   })
 
   lifecycle {
@@ -104,6 +105,8 @@ resource "aws_security_group_rule" "allow_tcp8081_inbound" {
 
 # API Reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group
 resource "aws_autoscaling_group" "webserver-asg" {
+  name = "${var.cluster_name}-${aws_launch_configuration.webserver-lc.name}"
+
   launch_configuration = aws_launch_configuration.webserver-lc.name
   vpc_zone_identifier = data.aws_subnets.default-subnets.ids
 
@@ -118,6 +121,16 @@ resource "aws_autoscaling_group" "webserver-asg" {
     propagate_at_launch = true
     value               = "${var.cluster_name}"
   }
+
+  # Create
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  # Wait for minimum servers to pass LoadBalancer Health Check before considering ASG deployment is complete.
+  min_elb_capacity = var.min_server_count
+
+
 }
 
 # Reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb

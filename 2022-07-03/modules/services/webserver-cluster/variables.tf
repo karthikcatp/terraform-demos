@@ -13,6 +13,12 @@ variable "ami" {
   description = "VM image to use"
 }
 
+variable "server_text" {
+  description = "The text the web server must return"
+  type = string
+  default = "Welcome to Rathinam Trainers"
+}
+
 variable "instance_type" {
   type        = string
   default     = "t2.micro"
