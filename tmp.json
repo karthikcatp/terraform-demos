@@ -1,0 +1,277 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "description for the virtual network"
+      }
+    },
+    "admin-username": {
+      "type": "string",
+      "defaultValue": "it",
+      "metadata": {
+        "description": "default admin user name."
+      }
+    },
+    "admin-password": {
+      "type": "string",
+      "defaultValue": "veeru0005",
+      "metadata": {
+        "description": "default admin password."
+      }
+    }
+  },
+  "variables": {
+    "virtialNetworkName": "vnet",
+    "subnet1name": "subnet1nam",
+    "subnet2name": "subnet2nam",
+    "vnetcidr": "10.0.0.0/16",
+    "subnet1cidr": "10.0.1.0/24",
+    "subnet2cidr": "10.0.2.0/24",
+    "subnet1-nsg": "[concat(variables('subnet1name'), '-nsg')]",
+    "subnet2-nsg": "[concat(variables('subnet2name'), '-nsg')]",
+    "public-ip1": "mypublic-ip1",
+    "nic1": "vm-nic1",
+    "public-ip2": "mypublic-ip2",
+    "nic2": "vm-nic2",
+    "storage1-name": "storage1",
+    "storage1-sku": "Premium_LRS",
+    "vm1-name": "vm1",
+    "ssh-public-key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnoafwyewM2TU9Je9ZU5MHzAgUQHuJwuLcbTF9S/H2bV9TVLXA/vmgCCGX3ifgFPG1JlfmUYqmmvBvb7k6uBUkEvcLY0jBbO5SzL3KBERVGt5hc0XrTrAZl+F/EzYn6lw4H17A0mba3Q9yQRR+OiLVRamfXdnK7DG7d1zAoOtkpk5LvOP2cuv5qUV+21RVmd/s/3SbtgxjI2QNnUT+3ZhU8WEkCTTFw1lmXz1vHqZC/UcedhJTIIm6lmFaSp0SVZiv068jRUnwFHY69YM1Aaq3g0W4BqUsUNrCumV/WJZFfh2rUX821LvXkvI7W+l9xoU66Q/R9IKJeHTrzP/QHJ7z"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "name": "[variables('subnet1-nsg')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "rdp-rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "web-rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "name": "[variables('subnet2-nsg')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "rdp-rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "web-rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('virtialNetworkName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups',variables('subnet1-nsg'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups',variables('subnet2-nsg'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vnetcidr')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnet1name')]",
+            "properties": {
+              "addressPrefix": "[variables('subnet1cidr')]",
+              "networkSecurityGroup": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('subnet1-nsg'))]"
+            }
+          },
+          {
+            "name": "[variables('subnet2name')]",
+            "properties": {
+              "addressPrefix": "[variables('subnet2cidr')]",
+              "networkSecurityGroup": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('subnet1-nsg'))]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('public-ip1')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('nic1')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/subnet', variables('virtialNetworkName'), variables('subnet1name'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('public-ip1'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnet', variables('virtialNetworkName'), variables('subnet1name'))]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('public-ip1'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('nic2')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnet', variables('virtialNetworkName'), variables('subnet2name'))]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('public-ip2'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-09-01",
+      "name": "[variables('storage1-name')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[variables('storage1-sku')]"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "supportsHttpsTrafficOnly": true
+      }
+    },
+    {
+      "type": "Microsoft.ScVmm/virtualMachines",
+      "apiVersion": "2020-06-05-preview",
+      "name": "[variables('virtialNetworkName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('nic1'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('nic2'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage1-name'))]"
+      ],
+      "properties": {
+        "osProfile": {
+          "computerName": "[variables('vm1-name')]",
+          "adminUsername": "[parameters('admin-username')]",
+          "adminPassword": "[parameters('admin-password')]",
+          "disablePasswordAuthentication": false,
+          "ssh": {
+            "publicKey": {
+              "keyData": "[variables('ssh-public-key')]",
+              "path": "[concat('./home', parameters('admin-username'),'/.ssh/authorized_keys')]"
+            }
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "Standard_B1s"
+        },
+        "storageProfile": {
+          "publisher": "Cononical",
+          "offer": "UbuntuServer",
+          "sku": "18.04.LTS",
+          "version": "Latest"
+        },
+        "osDesk": {
+          "createOption": "FromImage"
+        },
+        "networkProfile": {
+          "networkInterfaces": {
+            "properties": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('nic1'))]",
+              "primery": true
+            }
+          }
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUrl": "[reference( resourceId('Microsoft.Storage/storageAccounts', variables('storage1-name')),'2019-04-01').primeryEndpoints['blob']]"
+          }
+        }
+      }
+    }
+  ]
+}

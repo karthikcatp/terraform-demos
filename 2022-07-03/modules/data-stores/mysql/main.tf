@@ -4,6 +4,7 @@ resource "aws_db_instance" "lmsdb" {
   identifier_prefix   = var.identifier_prefix
   allocated_storage   = var.allocated_storage
   skip_final_snapshot = var.skip_final_snapshot
+
   db_name             = var.db_name
   username            = var.db_username
   password            = var.db_password
