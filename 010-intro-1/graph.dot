@@ -1,0 +1,36 @@
+digraph {
+	compound = "true"
+	newrank = "true"
+	subgraph "root" {
+		"[root] aws_autoscaling_group.webserver-asg (expand)" [label = "aws_autoscaling_group.webserver-asg", shape = "box"]
+		"[root] aws_instance.myvm1 (orphan)" [label = "aws_instance.myvm1", shape = "box"]
+		"[root] aws_launch_configuration.webserver-lc (expand)" [label = "aws_launch_configuration.webserver-lc", shape = "box"]
+		"[root] aws_security_group.myvm1sg (expand)" [label = "aws_security_group.myvm1sg", shape = "box"]
+		"[root] data.aws_subnets.default-subnets (expand)" [label = "data.aws_subnets.default-subnets", shape = "box"]
+		"[root] data.aws_vpc.default-vpc (expand)" [label = "data.aws_vpc.default-vpc", shape = "box"]
+		"[root] output.webserver_public_ip (destroy)" [label = "output.webserver_public_ip (destroy)", shape = "note"]
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"]" [label = "provider[\"registry.terraform.io/hashicorp/aws\"]", shape = "diamond"]
+		"[root] var.ami" [label = "var.ami", shape = "note"]
+		"[root] var.ingress_source_cidr" [label = "var.ingress_source_cidr", shape = "note"]
+		"[root] var.instance_type" [label = "var.instance_type", shape = "note"]
+		"[root] var.region" [label = "var.region", shape = "note"]
+		"[root] var.tags" [label = "var.tags", shape = "note"]
+		"[root] aws_autoscaling_group.webserver-asg (expand)" -> "[root] aws_launch_configuration.webserver-lc (expand)"
+		"[root] aws_autoscaling_group.webserver-asg (expand)" -> "[root] data.aws_subnets.default-subnets (expand)"
+		"[root] aws_instance.myvm1 (orphan)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] aws_launch_configuration.webserver-lc (expand)" -> "[root] aws_security_group.myvm1sg (expand)"
+		"[root] aws_launch_configuration.webserver-lc (expand)" -> "[root] var.ami"
+		"[root] aws_launch_configuration.webserver-lc (expand)" -> "[root] var.instance_type"
+		"[root] aws_security_group.myvm1sg (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] aws_security_group.myvm1sg (expand)" -> "[root] var.ingress_source_cidr"
+		"[root] data.aws_subnets.default-subnets (expand)" -> "[root] data.aws_vpc.default-vpc (expand)"
+		"[root] data.aws_vpc.default-vpc (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] aws_autoscaling_group.webserver-asg (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] aws_instance.myvm1 (orphan)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"]" -> "[root] var.region"
+		"[root] root" -> "[root] output.webserver_public_ip (destroy)"
+		"[root] root" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)"
+		"[root] root" -> "[root] var.tags"
+	}
+}
+
